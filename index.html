@@ -3,132 +3,299 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Synthx.cc</title>
+    <title>synthx.cc</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
+        /* Reset CSS */
+        * {
             margin: 0;
             padding: 0;
-            background-color: #f4f4f4;
+            box-sizing: border-box;
         }
-        h1 {
-            margin-top: 50px;
-            font-size: 36px;
-            color: #333;
+
+        body {
+            background-color: #0f0f0f;
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
         }
-        canvas {
+
+        header {
+            width: 100%;
+            padding: 20px 0;
+            background: linear-gradient(135deg, #1f1f1f, #2a2a2a);
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            position: fixed;
+            top: 0;
+            z-index: 1000;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            color: #00ffea;
+            text-shadow: 0 0 10px #00ffea, 0 0 20px #00ffea;
+        }
+
+        main {
+            margin-top: 100px;
+            width: 90%;
+            max-width: 1200px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 40px;
+        }
+
+        .status {
+            font-size: 1.5rem;
+            color: #ff4081;
+            text-align: center;
+            animation: blink 1.5s infinite;
+        }
+
+        @keyframes blink {
+            0%, 50%, 100% { opacity: 1; }
+            25%, 75% { opacity: 0.5; }
+        }
+
+        .game-container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border: 2px solid #00ffea;
+            border-radius: 10px;
+            box-shadow: 0 0 20px #00ffea;
+            position: relative;
+        }
+
+        .game-container canvas {
+            display: block;
+            background-color: #1a1a1a;
+            border: 1px solid #00ffea;
+            border-radius: 5px;
+        }
+
+        .info-section {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border: 2px solid #ff4081;
+            border-radius: 10px;
+            width: 100%;
+            max-width: 800px;
+            box-shadow: 0 0 20px #ff4081;
+            text-align: center;
+        }
+
+        .info-section h2 {
+            margin-bottom: 15px;
+            color: #ff4081;
+            text-shadow: 0 0 10px #ff4081;
+        }
+
+        .bookmark-btn {
             margin-top: 20px;
-            background: #fff;
-            border: 1px solid #ddd;
+            padding: 10px 20px;
+            background-color: #00ffea;
+            color: #0f0f0f;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            box-shadow: 0 0 10px #00ffea;
+            transition: background-color 0.3s, transform 0.3s;
         }
-        p {
-            margin-top: 20px;
-            font-size: 18px;
-            color: #555;
+
+        .bookmark-btn:hover {
+            background-color: #00c7b7;
+            transform: scale(1.05);
         }
+
+        /* Futuristic UI Elements */
+        .neon-button {
+            position: relative;
+            padding: 12px 24px;
+            color: #fff;
+            background: transparent;
+            border: 2px solid #00ffea;
+            border-radius: 8px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        .neon-button::before,
+        .neon-button::after {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            width: calc(100% + 4px);
+            height: calc(100% + 4px);
+            background: linear-gradient(45deg, #00ffea, #ff4081, #00ffea);
+            z-index: -1;
+            filter: blur(8px);
+            opacity: 0;
+            transition: opacity 0.3s;
+            border-radius: 10px;
+        }
+
+        .neon-button::after {
+            filter: blur(4px);
+            opacity: 0.5;
+        }
+
+        .neon-button:hover::before,
+        .neon-button:hover::after {
+            opacity: 1;
+        }
+
     </style>
 </head>
 <body>
-    <h1>synthx.cc in development</h1>
-    <canvas id="plinkoCanvas" width="400" height="500"></canvas>
-    <p>Plinko for no reason</p>
+    <header>
+        <h1>synthx.cc</h1>
+    </header>
+    <main>
+        <div class="status">synthx.cc is in development, please come back later.</div>
+
+        <div class="game-container">
+            <h2 style="color: #00ffea; text-align: center; margin-bottom: 10px;">Arcade Game</h2>
+            <canvas id="gameCanvas" width="400" height="300"></canvas>
+            <div style="position: absolute; top: 10px; right: 10px; color: #fff;">
+                Points: <span id="points">0</span>
+            </div>
+        </div>
+
+        <div class="info-section">
+            <h2>What is synthx.cc?</h2>
+            <p>Synthx.cc is an <strong>arras.io</strong> remake with a lot of optimization and a different feel. Synthx will contain many interesting gamemodes and updates. The discord server will be released soon. Please stay tuned!</p>
+            <button class="bookmark-btn" onclick="bookmarkPage()">Bookmark this Page</button>
+        </div>
+    </main>
 
     <script>
-        const canvas = document.getElementById('plinkoCanvas');
+        // Simple Arcade Game: Collect the Moving Dot
+        const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
+        const pointsDisplay = document.getElementById('points');
+        let points = 0;
 
-        const pegs = [];
-        const balls = [];
-        const pegRadius = 5;
-        const ballRadius = 5;
-        let score = 0;
+        const player = {
+            x: canvas.width / 2 - 15,
+            y: canvas.height / 2 - 15,
+            width: 30,
+            height: 30,
+            speed: 3,
+            dx: 0,
+            dy: 0
+        };
 
-        // Draw pegs
-        function createPegs() {
-            for (let y = 50; y < 400; y += 50) {
-                for (let x = 50; x < 400; x += 50) {
-                    const offsetX = y % 100 === 0 ? 25 : 0; // Stagger rows
-                    pegs.push({ x: x + offsetX, y });
-                }
+        const target = {
+            x: Math.random() * (canvas.width - 20),
+            y: Math.random() * (canvas.height - 20),
+            size: 20
+        };
+
+        function drawPlayer() {
+            ctx.fillStyle = '#00ffea';
+            ctx.fillRect(player.x, player.y, player.width, player.height);
+        }
+
+        function drawTarget() {
+            ctx.fillStyle = '#ff4081';
+            ctx.beginPath();
+            ctx.arc(target.x + target.size / 2, target.y + target.size / 2, target.size / 2, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        function clear() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function update() {
+            player.x += player.dx;
+            player.y += player.dy;
+
+            // Boundary Detection
+            if (player.x < 0) player.x = 0;
+            if (player.y < 0) player.y = 0;
+            if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
+            if (player.y + player.height > canvas.height) player.y = canvas.height - player.height;
+
+            // Collision Detection
+            if (player.x < target.x + target.size &&
+                player.x + player.width > target.x &&
+                player.y < target.y + target.size &&
+                player.y + player.height > target.y) {
+                points += 10;
+                pointsDisplay.textContent = points;
+                relocateTarget();
             }
         }
 
-        function drawPegs() {
-            ctx.fillStyle = '#888';
-            pegs.forEach(peg => {
-                ctx.beginPath();
-                ctx.arc(peg.x, peg.y, pegRadius, 0, Math.PI * 2);
-                ctx.fill();
-            });
+        function relocateTarget() {
+            target.x = Math.random() * (canvas.width - target.size);
+            target.y = Math.random() * (canvas.height - target.size);
         }
 
-        // Draw ball
-        function drawBalls() {
-            balls.forEach(ball => {
-                ctx.fillStyle = ball.color;
-                ctx.beginPath();
-                ctx.arc(ball.x, ball.y, ballRadius, 0, Math.PI * 2);
-                ctx.fill();
-            });
+        function draw() {
+            clear();
+            drawPlayer();
+            drawTarget();
+            update();
+            requestAnimationFrame(draw);
         }
 
-        function updateBalls() {
-            balls.forEach(ball => {
-                ball.y += ball.speed;
-                ball.x += ball.dx;
+        // Keyboard Controls
+        const keys = {};
 
-                // Check for peg collisions
-                pegs.forEach(peg => {
-                    const dx = ball.x - peg.x;
-                    const dy = ball.y - peg.y;
-                    const distance = Math.sqrt(dx * dx + dy * dy);
-                    if (distance < pegRadius + ballRadius) {
-                        ball.dx = -ball.dx + Math.random() * 2 - 1; // Change direction
-                    }
-                });
+        document.addEventListener('keydown', (e) => {
+            keys[e.key] = true;
+            updateMovement();
+        });
 
-                // Reset ball if it reaches bottom
-                if (ball.y > canvas.height) {
-                    score += Math.floor(Math.random() * 10 + 1); // Random points
-                    ball.y = 0;
-                    ball.x = Math.random() * canvas.width;
-                }
-            });
+        document.addEventListener('keyup', (e) => {
+            keys[e.key] = false;
+            updateMovement();
+        });
+
+        function updateMovement() {
+            player.dx = 0;
+            player.dy = 0;
+            if (keys['ArrowUp'] || keys['w']) {
+                player.dy = -player.speed;
+            }
+            if (keys['ArrowDown'] || keys['s']) {
+                player.dy = player.speed;
+            }
+            if (keys['ArrowLeft'] || keys['a']) {
+                player.dx = -player.speed;
+            }
+            if (keys['ArrowRight'] || keys['d']) {
+                player.dx = player.speed;
+            }
         }
 
-        // Draw score
-        function drawScore() {
-            ctx.font = '16px Arial';
-            ctx.fillStyle = '#333';
-            ctx.fillText(`Score: ${score}`, 10, canvas.height - 20);
-        }
+        // Start the game
+        draw();
 
-        // Create a new ball
-        function createBall() {
-            balls.push({
-                x: Math.random() * canvas.width,
-                y: 0,
-                dx: Math.random() * 2 - 1,
-                speed: 2 + Math.random() * 2,
-                color: `hsl(${Math.random() * 360}, 70%, 60%)`
-            });
-        }
+        // Bookmark Function
+        function bookmarkPage() {
+            const url = window.location.href;
+            const title = document.title;
 
-        // Main game loop
-        function gameLoop() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            drawPegs();
-            updateBalls();
-            drawBalls();
-            drawScore();
-            requestAnimationFrame(gameLoop);
+            if (window.sidebar && window.sidebar.addPanel) { // Firefox <=22
+                window.sidebar.addPanel(title, url, '');
+            } else if (window.external && ('AddFavorite' in window.external)) { // IE Favorites
+                window.external.AddFavorite(url, title);
+            } else { // Other browsers (mainly WebKit - Chrome/Safari)
+                alert('Press ' + (navigator.userAgent.toLowerCase().indexOf('mac') != -1 ? 'Cmd' : 'Ctrl') + '+D to bookmark this page.');
+            }
         }
-
-        // Initialize game
-        createPegs();
-        setInterval(createBall, 1000); // Create a new ball every second
-        gameLoop();
     </script>
 </body>
 </html>
