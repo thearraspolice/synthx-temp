@@ -168,7 +168,7 @@
         <div class="status">synthx.cc is in development, please come back later.</div>
 
         <div class="game-container">
-            <h2 style="color: #00ffea; text-align: center; margin-bottom: 10px;">Arcade Game</h2>
+            <h2 style="color: #00ffea; text-align: center; margin-bottom: 10px;">something while you wait...</h2>
             <canvas id="gameCanvas" width="400" height="300"></canvas>
             <div style="position: absolute; top: 10px; right: 10px; color: #fff;">
                 Points: <span id="points">0</span>
@@ -183,7 +183,7 @@
     </main>
 
     <script>
-        // Simple Arcade Game: Collect the Moving Dot
+        // Simple Arcade Game: Collect the Moving Dot with Trail Effect
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         const pointsDisplay = document.getElementById('points');
@@ -196,7 +196,8 @@
             height: 30,
             speed: 3,
             dx: 0,
-            dy: 0
+            dy: 0,
+            trail: [] // Array to store previous positions
         };
 
         const target = {
@@ -206,8 +207,21 @@
         };
 
         function drawPlayer() {
+            // Draw trail
+            ctx.fillStyle = 'rgba(0, 255, 234, 0.2)'; // Faded color for trail
+            player.trail.forEach((position, index) => {
+                ctx.fillRect(position.x, position.y, player.width, player.height);
+            });
+
+            // Draw player
             ctx.fillStyle = '#00ffea';
             ctx.fillRect(player.x, player.y, player.width, player.height);
+
+            // Update trail
+            player.trail.push({ x: player.x, y: player.y });
+            if (player.trail.length > 10) { // Limit trail length
+                player.trail.shift();
+            }
         }
 
         function drawTarget() {
@@ -218,7 +232,8 @@
         }
 
         function clear() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = 'rgba(26, 26, 26, 0.3)'; // Slightly opaque to create trail effect
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
         }
 
         function update() {
@@ -271,16 +286,16 @@
         function updateMovement() {
             player.dx = 0;
             player.dy = 0;
-            if (keys['ArrowUp'] || keys['w']) {
+            if (keys['ArrowUp'] || keys['w'] || keys['W']) {
                 player.dy = -player.speed;
             }
-            if (keys['ArrowDown'] || keys['s']) {
+            if (keys['ArrowDown'] || keys['s'] || keys['S']) {
                 player.dy = player.speed;
             }
-            if (keys['ArrowLeft'] || keys['a']) {
+            if (keys['ArrowLeft'] || keys['a'] || keys['A']) {
                 player.dx = -player.speed;
             }
-            if (keys['ArrowRight'] || keys['d']) {
+            if (keys['ArrowRight'] || keys['d'] || keys['D']) {
                 player.dx = player.speed;
             }
         }
@@ -293,12 +308,31 @@
             const url = window.location.href;
             const title = document.title;
 
-            if (window.sidebar && window.sidebar.addPanel) { // Firefox <=22
-                window.sidebar.addPanel(title, url, '');
-            } else if (window.external && ('AddFavorite' in window.external)) { // IE Favorites
-                window.external.AddFavorite(url, title);
-            } else { // Other browsers (mainly WebKit - Chrome/Safari)
-                alert('Press ' + (navigator.userAgent.toLowerCase().indexOf('mac') != -1 ? 'Cmd' : 'Ctrl') + '+D to bookmark this page.');
+            try {
+                if (window.sidebar && window.sidebar.addPanel) { // Firefox <=22
+                    window.sidebar.addPanel(title, url, '');
+                } else if (window.external && ('AddFavorite' in window.external)) { // IE Favorites
+                    window.external.AddFavorite(url, title);
+                } else { // Other browsers (mainly WebKit - Chrome/Safari)
+                    // Modern browsers do not support automatic bookmarking
+                    // Attempt to use the Web Share API as an alternative
+                    if (navigator.share) {
+                        navigator.share({
+                            title: title,
+                            url: url
+                        }).then(() => {
+                            console.log('Page shared successfully');
+                        }).catch((error) => {
+                            console.error('Error sharing the page:', error);
+                        });
+                    } else {
+                        // If Web Share API is not supported, inform the user
+                        alert('Automatic bookmarking is not supported by your browser. Please press ' + (navigator.platform.toLowerCase().indexOf('mac') !== -1 ? 'Cmd' : 'Ctrl') + '+D to bookmark this page.');
+                    }
+                }
+            } catch (e) {
+                console.error('Bookmarking failed:', e);
+                alert('Unable to bookmark the page automatically. Please press ' + (navigator.platform.toLowerCase().indexOf('mac') !== -1 ? 'Cmd' : 'Ctrl') + '+D to bookmark this page.');
             }
         }
     </script>
