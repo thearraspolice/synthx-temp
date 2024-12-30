@@ -20,7 +20,7 @@
             flex-direction: column;
             align-items: center;
             min-height: 100vh;
-            overflow: hidden;
+            /* Removed overflow: hidden to allow scrolling */
         }
 
         header {
@@ -48,6 +48,7 @@
             flex-direction: column;
             align-items: center;
             gap: 40px;
+            padding-bottom: 50px; /* Added padding for scrolling */
         }
 
         .status {
@@ -69,6 +70,7 @@
             border-radius: 10px;
             box-shadow: 0 0 20px #00ffea;
             position: relative;
+            width: 420px; /* Slightly larger than canvas */
         }
 
         .game-container canvas {
@@ -178,110 +180,250 @@
     </main>
 
     <script>
-        // Simple Arcade Game: Collect the Moving Dot
+        // Enhanced Arcade Game: Player with Barrel, Shooting, Enemies, and Base
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         const pointsDisplay = document.getElementById('points');
         let points = 0;
 
         const player = {
-            x: canvas.width / 2 - 15,
-            y: canvas.height / 2 - 15,
-            width: 30,
-            height: 30,
-            speed: 3,
-            dx: 0,
-            dy: 0
+            x: canvas.width / 2,
+            y: canvas.height / 2,
+            radius: 15,
+            barrelWidth: 6,
+            barrelHeight: 20,
+            color: '#00aaff',
+            angle: 0,
+            bullets: []
         };
 
-        const target = {
-            x: Math.random() * (canvas.width - 20),
-            y: Math.random() * (canvas.height - 20),
-            size: 20
+        const base = {
+            x: canvas.width / 2,
+            y: canvas.height / 2,
+            radius: 30,
+            color: '#ffaa00',
+            health: 100
         };
 
+        const enemies = [];
+        const enemySpawnInterval = 2000; // Spawn enemy every 2 seconds
+        let lastEnemySpawn = Date.now();
+
+        const bullets = [];
+        const bulletSpeed = 5;
+
+        // Utility functions
+        function getAngle(cx, cy, ex, ey) {
+            const dy = ey - cy;
+            const dx = ex - cx;
+            const theta = Math.atan2(dy, dx);
+            return theta;
+        }
+
+        // Player Drawing
         function drawPlayer() {
-            ctx.fillStyle = '#00ffea';
-            ctx.fillRect(player.x, player.y, player.width, player.height);
-        }
-
-        function drawTarget() {
-            ctx.fillStyle = '#ff4081';
+            // Draw player circle
             ctx.beginPath();
-            ctx.arc(target.x + target.size / 2, target.y + target.size / 2, target.size / 2, 0, Math.PI * 2);
+            ctx.arc(player.x, player.y, player.radius, 0, Math.PI * 2);
+            ctx.fillStyle = player.color;
             ctx.fill();
+            ctx.closePath();
+
+            // Draw barrel
+            ctx.save();
+            ctx.translate(player.x, player.y);
+            ctx.rotate(player.angle);
+            ctx.fillStyle = '#808080'; // Grey color for barrel
+            ctx.fillRect(player.radius, -player.barrelWidth / 2, player.barrelHeight, player.barrelWidth);
+            ctx.restore();
         }
 
-        function clear() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        // Base Drawing
+        function drawBase() {
+            ctx.beginPath();
+            ctx.arc(base.x, base.y, base.radius, 0, Math.PI * 2);
+            ctx.fillStyle = base.color;
+            ctx.fill();
+            ctx.closePath();
+
+            // Base Health
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(`Health: ${base.health}`, base.x, base.y + base.radius + 15);
         }
 
+        // Enemy Constructor
+        class Enemy {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.radius = 10;
+                this.color = '#ff0000';
+                this.speed = 1.5;
+                this.angle = getAngle(this.x, this.y, base.x, base.y);
+            }
+
+            update() {
+                this.x += Math.cos(this.angle) * this.speed;
+                this.y += Math.sin(this.angle) * this.speed;
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+                ctx.closePath();
+            }
+        }
+
+        // Bullet Constructor
+        class Bullet {
+            constructor(x, y, angle) {
+                this.x = x;
+                this.y = y;
+                this.radius = 4;
+                this.color = '#ffff00';
+                this.speed = bulletSpeed;
+                this.angle = angle;
+                this.vx = Math.cos(this.angle) * this.speed;
+                this.vy = Math.sin(this.angle) * this.speed;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+                ctx.closePath();
+            }
+        }
+
+        // Handle mouse movement
+        let mouseX = canvas.width / 2;
+        let mouseY = canvas.height / 2;
+
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            mouseX = e.clientX - rect.left;
+            mouseY = e.clientY - rect.top;
+            player.angle = getAngle(player.x, player.y, mouseX, mouseY);
+        });
+
+        // Handle shooting
+        canvas.addEventListener('mousedown', (e) => {
+            const bullet = new Bullet(
+                player.x + Math.cos(player.angle) * player.radius,
+                player.y + Math.sin(player.angle) * player.radius,
+                player.angle
+            );
+            bullets.push(bullet);
+        });
+
+        // Spawn enemies at intervals
+        function spawnEnemy() {
+            const edge = Math.floor(Math.random() * 4);
+            let x, y;
+
+            switch(edge) {
+                case 0: // Top
+                    x = Math.random() * canvas.width;
+                    y = -10;
+                    break;
+                case 1: // Right
+                    x = canvas.width + 10;
+                    y = Math.random() * canvas.height;
+                    break;
+                case 2: // Bottom
+                    x = Math.random() * canvas.width;
+                    y = canvas.height + 10;
+                    break;
+                case 3: // Left
+                    x = -10;
+                    y = Math.random() * canvas.height;
+                    break;
+            }
+
+            enemies.push(new Enemy(x, y));
+        }
+
+        // Collision Detection
+        function isColliding(a, b) {
+            const dx = a.x - b.x;
+            const dy = a.y - b.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            return distance < a.radius + b.radius;
+        }
+
+        // Game Update and Draw
         function update() {
-            player.x += player.dx;
-            player.y += player.dy;
+            // Update enemies
+            enemies.forEach((enemy, enemyIndex) => {
+                enemy.update();
+                enemy.draw();
 
-            // Boundary Detection
-            if (player.x < 0) player.x = 0;
-            if (player.y < 0) player.y = 0;
-            if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
-            if (player.y + player.height > canvas.height) player.y = canvas.height - player.height;
+                // Check collision with base
+                if (isColliding(enemy, base)) {
+                    base.health -= 10;
+                    enemies.splice(enemyIndex, 1);
+                    if (base.health <= 0) {
+                        alert('Game Over! Your base was destroyed.');
+                        resetGame();
+                    }
+                }
 
-            // Collision Detection
-            if (player.x < target.x + target.size &&
-                player.x + player.width > target.x &&
-                player.y < target.y + target.size &&
-                player.y + player.height > target.y) {
-                points += 10;
-                pointsDisplay.textContent = points;
-                relocateTarget();
-            }
-        }
+                // Check collision with bullets
+                bullets.forEach((bullet, bulletIndex) => {
+                    if (isColliding(enemy, bullet)) {
+                        points += 10;
+                        pointsDisplay.textContent = points;
+                        enemies.splice(enemyIndex, 1);
+                        bullets.splice(bulletIndex, 1);
+                    }
+                });
+            });
 
-        function relocateTarget() {
-            target.x = Math.random() * (canvas.width - target.size);
-            target.y = Math.random() * (canvas.height - target.size);
-        }
+            // Update bullets
+            bullets.forEach((bullet, bulletIndex) => {
+                bullet.update();
+                bullet.draw();
 
-        function draw() {
-            clear();
+                // Remove bullets that are out of bounds
+                if (bullet.x < 0 || bullet.x > canvas.width || bullet.y < 0 || bullet.y > canvas.height) {
+                    bullets.splice(bulletIndex, 1);
+                }
+            });
+
+            // Draw player and base
             drawPlayer();
-            drawTarget();
-            update();
-            requestAnimationFrame(draw);
+            drawBase();
+
+            // Spawn enemies
+            if (Date.now() - lastEnemySpawn > enemySpawnInterval) {
+                spawnEnemy();
+                lastEnemySpawn = Date.now();
+            }
+
+            requestAnimationFrame(update);
         }
 
-        // Keyboard Controls
-        const keys = {};
-
-        document.addEventListener('keydown', (e) => {
-            keys[e.key] = true;
-            updateMovement();
-        });
-
-        document.addEventListener('keyup', (e) => {
-            keys[e.key] = false;
-            updateMovement();
-        });
-
-        function updateMovement() {
-            player.dx = 0;
-            player.dy = 0;
-            if (keys['ArrowUp'] || keys['w']) {
-                player.dy = -player.speed;
-            }
-            if (keys['ArrowDown'] || keys['s']) {
-                player.dy = player.speed;
-            }
-            if (keys['ArrowLeft'] || keys['a']) {
-                player.dx = -player.speed;
-            }
-            if (keys['ArrowRight'] || keys['d']) {
-                player.dx = player.speed;
-            }
+        // Reset Game
+        function resetGame() {
+            enemies.length = 0;
+            bullets.length = 0;
+            points = 0;
+            pointsDisplay.textContent = points;
+            base.health = 100;
         }
 
         // Start the game
-        draw();
+        update();
 
         // Bookmark Function
         function bookmarkPage() {
@@ -293,7 +435,7 @@
             } else if (window.external && ('AddFavorite' in window.external)) { // IE Favorites
                 window.external.AddFavorite(url, title);
             } else { // Other browsers (mainly WebKit - Chrome/Safari)
-                alert('Press ' + (navigator.userAgent.toLowerCase().indexOf('mac') != -1 ? 'Cmd' : 'Ctrl') + '+D to bookmark this page.');
+                alert('Press ' + (navigator.userAgent.toLowerCase().indexOf('mac') !== -1 ? 'Cmd' : 'Ctrl') + '+D to bookmark this page.');
             }
         }
     </script>
