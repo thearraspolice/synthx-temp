@@ -265,7 +265,7 @@
         /*         Global Config + Variables          */
         /**********************************************/
         // The real timestamp in ms (replace with your actual timestamp)
-        const notificationTimestamp = 1736607600 * 1000;
+        const notificationTimestamp = 1736607600 * 1000; // Jan 13, 2025 02:00:00 GMT
 
         // Notification message for the official timestamp
         const scheduledNotificationMessage = "OPEN TESTING HAPPENING NOW! STAY TUNED AT SYNTHX.CC! SITE UPDATING SOON!";
@@ -282,41 +282,51 @@
                 return;
             }
 
-            Notification.requestPermission().then((permission) => {
-                if (permission === "granted") {
-                    // Send the updated test notification
-                    new Notification("Your notifications work. Nice :) You will receive one at the game's release!");
-
-                    // If testOpenTestingTime is true, use the 10-second timer logic
-                    if (testOpenTestingTime) {
-                        // 10 seconds after user clicks the button, trigger the open test
-                        setTimeout(() => {
-                            // Show the scheduled notification
-                            new Notification(scheduledNotificationMessage);
-                            // Then redirect to open-test page
-                            window.location.href = "open-test.html";
-                        }, 10000);
+            // Check the current Notification permission
+            if (Notification.permission === "granted") {
+                // If permission is already granted, show the immediate notification
+                showImmediateNotification();
+                scheduleScheduledNotification();
+            } else if (Notification.permission === "denied") {
+                // If permission is denied, inform the user
+                document.getElementById("notificationMsg").textContent = "Notifications denied. 🙃";
+            } else {
+                // If permission is 'default', request permission
+                Notification.requestPermission().then((permission) => {
+                    if (permission === "granted") {
+                        // Show the immediate notification
+                        showImmediateNotification();
+                        scheduleScheduledNotification();
+                        // Update the notification message on the page
+                        document.getElementById("notificationMsg").textContent = "Notifications enabled! You'll receive a notification at the game's release.";
                     } else {
-                        // Otherwise, schedule the notification for the official timestamp
-                        const now = Date.now();
-                        if (now >= notificationTimestamp) {
-                            // Time has already passed => show notification right away
-                            new Notification(scheduledNotificationMessage);
-                        } else {
-                            // Otherwise schedule it for the future
-                            const timeUntilNotification = notificationTimestamp - now;
-                            setTimeout(() => {
-                                new Notification(scheduledNotificationMessage);
-                            }, timeUntilNotification);
-                        }
+                        // If permission is denied, inform the user
+                        document.getElementById("notificationMsg").textContent = "Notifications denied. 🙃";
                     }
+                }).catch((error) => {
+                    console.error("Notification permission request failed:", error);
+                });
+            }
+        }
 
-                    // Update the notification message on the page
-                    document.getElementById("notificationMsg").textContent = "Notifications enabled! You'll receive a notification at the game's release.";
-                } else {
-                    document.getElementById("notificationMsg").textContent = "Notifications denied. 🙃";
-                }
-            });
+        function showImmediateNotification() {
+            new Notification("Your notifications work. Nice :) You will receive one at the game's release!");
+        }
+
+        function scheduleScheduledNotification() {
+            const now = Date.now();
+            if (now >= notificationTimestamp) {
+                // Time has already passed => show notification right away
+                new Notification(scheduledNotificationMessage);
+            } else {
+                // Otherwise schedule it for the future
+                const timeUntilNotification = notificationTimestamp - now;
+                setTimeout(() => {
+                    new Notification(scheduledNotificationMessage);
+                    // Optionally, redirect to open-test page
+                    // window.location.href = "open-test.html";
+                }, timeUntilNotification);
+            }
         }
 
         /**********************************************/
