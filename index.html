@@ -49,7 +49,7 @@
         main {
             margin-top: 100px; /* Ensures content starts below the fixed header */
             width: 90%;
-            max-width: 1200px;
+            max-width: 1000px; /* Increased max-width for a larger map */
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -120,7 +120,6 @@
             font-size: 1rem;
             box-shadow: 0 0 10px #00ffea;
             transition: background-color 0.3s, transform 0.3s;
-            margin-right: 10px;
         }
 
         .bookmark-btn:hover {
@@ -135,7 +134,7 @@
             border-radius: 10px;
             box-shadow: 0 0 20px #00ffea;
             position: relative;
-            width: 460px; /* Slightly larger than canvas for extra padding */
+            width: 800px; /* Increased width for a larger map */
             animation: borderGlowAlt 3s infinite;
         }
 
@@ -163,8 +162,8 @@
             background-color: #1a1a1a;
             border: 1px solid #00ffea;
             border-radius: 5px;
-            width: 100%;
-            height: auto;
+            width: 800px; /* Increased width for a larger map */
+            height: 600px; /* Increased height for a larger map */
         }
 
         .stats {
@@ -222,18 +221,6 @@
             background-color: #e53935;
             transform: scale(1.05);
         }
-
-        /* Responsive Design */
-        @media (max-width: 600px) {
-            .game-container {
-                width: 90%;
-            }
-
-            .stats {
-                flex-direction: column;
-                gap: 10px;
-            }
-        }
     </style>
 </head>
 <body>
@@ -250,7 +237,7 @@
             <h2>What is SYNTHX.CC?</h2>
             <p>Synthx.cc is an <strong>arras.io</strong> remake with a lot of optimization and a different feel. 
             SYNTHX.CC will contain many interesting gamemodes and updates. 
-            Join our Discord server <a href="https://discord.gg/ATTGqt72kz" target="_blank">here</a>. 
+            Join our Discord server <a href="https://discord.gg/ATTGqt72kz" target="_blank">Discord Invite</a>. 
             Please stay tuned!</p>
 
             <!-- Show the provided timestamp plus the message that will happen -->
@@ -266,7 +253,7 @@
         <!-- Game Container -->
         <div class="game-container">
             <h2>Something fun while you wait...</h2>
-            <canvas id="gameCanvas" width="400" height="300"></canvas>
+            <canvas id="gameCanvas" width="800" height="600"></canvas>
             <div class="stats">
                 <div>Score: <span id="score">0</span></div>
                 <div>High Score: <span id="highScore">0</span></div>
@@ -287,6 +274,26 @@
 
     <script>
         /**********************************************/
+        /*            Modal Functionality             */
+        /**********************************************/
+        const modal = document.getElementById('bookmarkModal');
+
+        function openModal() {
+            modal.style.display = 'block';
+        }
+
+        function closeModal() {
+            modal.style.display = 'none';
+        }
+
+        // Close modal when clicking outside of the modal content
+        window.onclick = function(event) {
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        /**********************************************/
         /*            Enhanced Arcade Game            */
         /**********************************************/
         const canvas = document.getElementById('gameCanvas');
@@ -297,11 +304,13 @@
         const levelDisplay = document.getElementById('level');
 
         let score = 0;
-        let highScore = 0;
+        let highScore = localStorage.getItem('highScore') || 0;
+        highScoreDisplay.textContent = highScore;
         let lives = 3;
         let level = 1;
         let gameOver = false;
 
+        // Player Object
         const player = {
             x: canvas.width / 2 - 15,
             y: canvas.height / 2 - 15,
@@ -313,64 +322,59 @@
             trail: []
         };
 
-        const targets = [];
-        const enemies = [];
-        const powerUps = [];
-
-        const targetColors = ['#ff4081', '#39ff14', '#ffa500'];
-        const enemyColor = '#ff0000';
-        const powerUpColor = '#00ffff';
-
         // Initialize Targets
+        const targetColors = ['#ff4081', '#39ff14', '#ffa500'];
+
         function initTargets(count) {
+            const targets = [];
             for (let i = 0; i < count; i++) {
                 targets.push({
                     x: Math.random() * (canvas.width - 20),
                     y: Math.random() * (canvas.height - 20),
                     size: 20,
                     color: targetColors[Math.floor(Math.random() * targetColors.length)],
-                    value: Math.floor(Math.random() * 20) + 10 // 10 to 30 points
+                    value: Math.floor(Math.random() * 20) + 10, // 10 to 30 points
+                    type: 'regular' // Can be extended for different target types
                 });
             }
+            return targets;
         }
 
         // Initialize Enemies
         function initEnemies(count) {
+            const enemies = [];
             for (let i = 0; i < count; i++) {
                 enemies.push({
-                    x: Math.random() * (canvas.width - 25),
-                    y: Math.random() * (canvas.height - 25),
-                    size: 25,
-                    color: enemyColor,
-                    speed: Math.random() * 2 + 1 // 1 to 3 speed
+                    x: Math.random() * (canvas.width - 15), // Smaller size: 15
+                    y: Math.random() * (canvas.height - 15),
+                    size: 15, // Reduced size
+                    color: '#ff0000', // Red color
+                    speed: 0.5 // Really slow
                 });
             }
+            return enemies;
         }
 
         // Initialize Power-Ups
         function initPowerUps(count) {
+            const powerUps = [];
             for (let i = 0; i < count; i++) {
                 powerUps.push({
-                    x: Math.random() * (canvas.width - 20),
-                    y: Math.random() * (canvas.height - 20),
+                    x: Math.random() * (canvas.width - 15),
+                    y: Math.random() * (canvas.height - 15),
                     size: 15,
-                    color: powerUpColor,
+                    color: '#00ffff', // Cyan color
                     type: Math.random() < 0.5 ? 'speed' : 'invincibility',
                     duration: 5000 // 5 seconds
                 });
             }
+            return powerUps;
         }
 
-        // Add Targets, Enemies, Power-Ups based on Level
-        function setupLevel() {
-            const targetCount = 5 + level * 2;
-            const enemyCount = 2 + level;
-            const powerUpCount = 1 + Math.floor(level / 2);
-
-            initTargets(targetCount);
-            initEnemies(enemyCount);
-            initPowerUps(powerUpCount);
-        }
+        // Initialize Game Entities
+        let targets = initTargets(10);
+        let enemies = initEnemies(5);
+        let powerUps = initPowerUps(3);
 
         // Draw Player
         function drawPlayer() {
@@ -442,12 +446,11 @@
 
             // Move Enemies
             enemies.forEach((enemy) => {
-                // Simple AI: move towards player
-                if (player.x > enemy.x) enemy.x += enemy.speed;
-                else enemy.x -= enemy.speed;
-
-                if (player.y > enemy.y) enemy.y += enemy.speed;
-                else enemy.y -= enemy.speed;
+                // Move towards player slowly
+                const angle = Math.atan2((player.y + player.height / 2) - (enemy.y + enemy.size / 2), 
+                                        (player.x + player.width / 2) - (enemy.x + enemy.size / 2));
+                enemy.x += Math.cos(angle) * enemy.speed;
+                enemy.y += Math.sin(angle) * enemy.speed;
             });
 
             // Collision Detection for Targets
@@ -459,15 +462,17 @@
                     if (score > highScore) {
                         highScore = score;
                         highScoreDisplay.textContent = highScore;
+                        localStorage.setItem('highScore', highScore);
                     }
+                    // Remove and respawn target
                     targets.splice(index, 1);
-                    // Spawn a new target
                     targets.push({
                         x: Math.random() * (canvas.width - 20),
                         y: Math.random() * (canvas.height - 20),
                         size: 20,
                         color: targetColors[Math.floor(Math.random() * targetColors.length)],
-                        value: Math.floor(Math.random() * 20) + 10
+                        value: Math.floor(Math.random() * 20) + 10,
+                        type: 'regular'
                     });
                 }
             });
@@ -475,12 +480,14 @@
             // Collision Detection for Enemies
             enemies.forEach((enemy) => {
                 if (isColliding(player, enemy)) {
-                    lives--;
-                    livesDisplay.textContent = lives;
-                    if (lives <= 0) {
-                        endGame();
-                    } else {
-                        resetPlayer();
+                    if (!invincibility) {
+                        lives--;
+                        livesDisplay.textContent = lives;
+                        if (lives <= 0) {
+                            endGame();
+                        } else {
+                            resetPlayer();
+                        }
                     }
                 }
             });
@@ -489,13 +496,13 @@
             powerUps.forEach((powerUp, index) => {
                 if (isColliding(player, powerUp)) {
                     activatePowerUp(powerUp.type);
+                    // Remove and respawn power-up
                     powerUps.splice(index, 1);
-                    // Spawn a new power-up
                     powerUps.push({
                         x: Math.random() * (canvas.width - 15),
                         y: Math.random() * (canvas.height - 15),
                         size: 15,
-                        color: powerUpColor,
+                        color: '#00ffff',
                         type: Math.random() < 0.5 ? 'speed' : 'invincibility',
                         duration: 5000
                     });
@@ -506,8 +513,24 @@
             if (score >= level * 100) {
                 level++;
                 levelDisplay.textContent = level;
-                // Increase difficulty
-                setupLevel();
+                // Increase difficulty by adding more targets and enemies
+                for (let i = 0; i < 2; i++) {
+                    targets.push({
+                        x: Math.random() * (canvas.width - 20),
+                        y: Math.random() * (canvas.height - 20),
+                        size: 20,
+                        color: targetColors[Math.floor(Math.random() * targetColors.length)],
+                        value: Math.floor(Math.random() * 20) + 10,
+                        type: 'regular'
+                    });
+                }
+                enemies.push({
+                    x: Math.random() * (canvas.width - 15),
+                    y: Math.random() * (canvas.height - 15),
+                    size: 15, // Small size
+                    color: '#ff0000',
+                    speed: 0.5 // Really slow
+                });
             }
         }
 
@@ -532,7 +555,6 @@
         function endGame() {
             gameOver = true;
             alert(`Game Over! Your Score: ${score}`);
-            // Reset Game
             resetGame();
         }
 
@@ -545,14 +567,14 @@
             level = 1;
             levelDisplay.textContent = level;
             gameOver = false;
-            // Clear arrays
-            targets.length = 0;
-            enemies.length = 0;
-            powerUps.length = 0;
-            // Setup initial level
-            setupLevel();
             // Reset player
             resetPlayer();
+            // Reset enemies
+            enemies = initEnemies(5);
+            // Reset targets
+            targets = initTargets(10);
+            // Reset power-ups
+            powerUps = initPowerUps(3);
         }
 
         // Activate Power-Up
@@ -617,7 +639,6 @@
         }
 
         // Initialize Game
-        setupLevel();
         draw();
 
         /**********************************************/
@@ -626,36 +647,13 @@
         // Convert the Unix timestamp to a readable date
         function displayReleaseDate() {
             const releaseDateElement = document.getElementById('releaseDate');
-            const releaseDate = new Date(notificationTimestamp);
+            const releaseDate = new Date(1736607600 * 1000); // Jan 13, 2025 02:00:00 GMT
             const options = { 
                 weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', 
                 hour: '2-digit', minute: '2-digit', second: '2-digit', timeZoneName: 'short' 
             };
             releaseDateElement.textContent = releaseDate.toLocaleDateString(undefined, options);
         }
-
-        /**********************************************/
-        /*         Modal Functionality (unchanged)    */
-        /**********************************************/
-        const modal = document.getElementById('bookmarkModal');
-
-        function openModal() {
-            modal.style.display = 'block';
-        }
-
-        function closeModal() {
-            modal.style.display = 'none';
-        }
-
-        // Close modal when clicking outside of the modal content
-        window.onclick = function(event) {
-            if (event.target === modal) {
-                modal.style.display = 'none';
-            }
-        }
-
-        // Assuming notificationTimestamp is defined elsewhere or replace with actual timestamp
-        const notificationTimestamp = 1736607600 * 1000; // Example timestamp
 
         // Call the function to display the release date
         displayReleaseDate();
