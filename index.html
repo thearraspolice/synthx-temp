@@ -99,7 +99,17 @@
             text-shadow: 0 0 10px #ff4081;
         }
 
-        .bookmark-btn, .notification-btn {
+        .info-section a {
+            color: #7289da; /* Discord's blurple color */
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .info-section a:hover {
+            text-decoration: underline;
+        }
+
+        .bookmark-btn {
             margin-top: 20px;
             padding: 10px 20px;
             background-color: #00ffea;
@@ -113,7 +123,7 @@
             margin-right: 10px;
         }
 
-        .bookmark-btn:hover, .notification-btn:hover {
+        .bookmark-btn:hover {
             background-color: #00c7b7;
             transform: scale(1.05);
         }
@@ -157,11 +167,17 @@
             height: auto;
         }
 
-        .points-display {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            color: #fff;
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            font-size: 1.2rem;
+        }
+
+        .stats div {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px 20px;
+            border-radius: 5px;
         }
 
         /* Modal Styles */
@@ -207,16 +223,15 @@
             transform: scale(1.05);
         }
 
-        .notification-status {
-            margin-top: 10px;
-            font-size: 1rem;
-            color: #ff4081;
-        }
-
         /* Responsive Design */
         @media (max-width: 600px) {
             .game-container {
                 width: 90%;
+            }
+
+            .stats {
+                flex-direction: column;
+                gap: 10px;
             }
         }
     </style>
@@ -233,7 +248,10 @@
         <!-- Info Section -->
         <div class="info-section">
             <h2>What is SYNTHX.CC?</h2>
-            <p>Synthx.cc is an <strong>arras.io</strong> remake with a lot of optimization and a different feel. SYNTHX.CC will contain many interesting gamemodes and updates. Join our Discord server <a href="https://discord.gg/ATTGqt72kz" target="_blank">here</a>. Please stay tuned!</p>
+            <p>Synthx.cc is an <strong>arras.io</strong> remake with a lot of optimization and a different feel. 
+            SYNTHX.CC will contain many interesting gamemodes and updates. 
+            Join our Discord server <a href="https://discord.gg/ATTGqt72kz" target="_blank">here</a>. 
+            Please stay tuned!</p>
 
             <!-- Show the provided timestamp plus the message that will happen -->
             <p>
@@ -243,17 +261,17 @@
 
             <!-- Buttons -->
             <button class="bookmark-btn" onclick="openModal()">Bookmark this Page</button>
-            <button class="notification-btn" onclick="askForNotifications()">Give me notification</button>
-
-            <div id="notificationMsg" class="notification-status"></div>
         </div>
 
         <!-- Game Container -->
         <div class="game-container">
             <h2>Something fun while you wait...</h2>
             <canvas id="gameCanvas" width="400" height="300"></canvas>
-            <div class="points-display">
-                Points: <span id="points">0</span>
+            <div class="stats">
+                <div>Score: <span id="score">0</span></div>
+                <div>High Score: <span id="highScore">0</span></div>
+                <div>Lives: <span id="lives">3</span></div>
+                <div>Level: <span id="level">1</span></div>
             </div>
         </div>
     </main>
@@ -269,100 +287,20 @@
 
     <script>
         /**********************************************/
-        /*         Global Config + Variables          */
-        /**********************************************/
-        // The real timestamp in ms (replace with your actual timestamp)
-        const notificationTimestamp = 1736607600 * 1000; // Jan 13, 2025 02:00:00 GMT
-
-        // Notification message for the official timestamp
-        const scheduledNotificationMessage = "OPEN TESTING HAPPENING NOW! STAY TUNED AT SYNTHX.CC! SITE UPDATING SOON!";
-
-        // If set to TRUE, we will trigger open test logic 10s after user clicks "Give me notification"
-        let testOpenTestingTime = true; // << default is false
-
-        /**********************************************/
-        /*         Notification Handling Logic        */
-        /**********************************************/
-        function askForNotifications() {
-            if (!("Notification" in window)) {
-                alert("This browser does not support desktop notification.");
-                return;
-            }
-
-            // Check the current Notification permission
-            if (Notification.permission === "granted") {
-                // If permission is already granted, show the immediate notification
-                showImmediateNotification();
-                scheduleScheduledNotification();
-            } else if (Notification.permission === "denied") {
-                // If permission is denied, inform the user
-                document.getElementById("notificationMsg").textContent = "Notifications denied.";
-            } else {
-                // If permission is 'default', request permission
-                Notification.requestPermission().then((permission) => {
-                    if (permission === "granted") {
-                        // Show the immediate notification
-                        showImmediateNotification();
-                        scheduleScheduledNotification();
-                        // Update the notification message on the page
-                        document.getElementById("notificationMsg").textContent = "Notifications enabled! You'll receive a notification at the game's release.";
-                    } else {
-                        // If permission is denied, inform the user
-                        document.getElementById("notificationMsg").textContent = "Notifications denied.";
-                    }
-                }).catch((error) => {
-                    console.error("Notification permission request failed:", error);
-                });
-            }
-        }
-
-        function showImmediateNotification() {
-            new Notification("Your notifications work. Nice :) You will receive one at the game's release!");
-        }
-
-        function scheduleScheduledNotification() {
-            const now = Date.now();
-            if (now >= notificationTimestamp) {
-                // Time has already passed => show notification right away
-                new Notification(scheduledNotificationMessage);
-            } else {
-                // Otherwise schedule it for the future
-                const timeUntilNotification = notificationTimestamp - now;
-                setTimeout(() => {
-                    new Notification(scheduledNotificationMessage);
-                    // Optionally, redirect to open-test page
-                    // window.location.href = "open-test.html";
-                }, timeUntilNotification);
-            }
-        }
-
-        /**********************************************/
-        /*            Modal Functionality             */
-        /**********************************************/
-        const modal = document.getElementById('bookmarkModal');
-
-        function openModal() {
-            modal.style.display = 'block';
-        }
-
-        function closeModal() {
-            modal.style.display = 'none';
-        }
-
-        // Close modal when clicking outside of the modal content
-        window.onclick = function(event) {
-            if (event.target === modal) {
-                modal.style.display = 'none';
-            }
-        }
-
-        /**********************************************/
         /*            Enhanced Arcade Game            */
         /**********************************************/
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
-        const pointsDisplay = document.getElementById('points');
-        let points = 0;
+        const scoreDisplay = document.getElementById('score');
+        const highScoreDisplay = document.getElementById('highScore');
+        const livesDisplay = document.getElementById('lives');
+        const levelDisplay = document.getElementById('level');
+
+        let score = 0;
+        let highScore = 0;
+        let lives = 3;
+        let level = 1;
+        let gameOver = false;
 
         const player = {
             x: canvas.width / 2 - 15,
@@ -375,24 +313,66 @@
             trail: []
         };
 
-        // Add multiple targets with varying points
-        const targets = [
-            {
-                x: Math.random() * (canvas.width - 20),
-                y: Math.random() * (canvas.height - 20),
-                size: 20,
-                color: '#ff4081',
-                value: 10
-            },
-            {
-                x: Math.random() * (canvas.width - 30),
-                y: Math.random() * (canvas.height - 30),
-                size: 30,
-                color: '#39ff14', // bright green
-                value: 20
-            }
-        ];
+        const targets = [];
+        const enemies = [];
+        const powerUps = [];
 
+        const targetColors = ['#ff4081', '#39ff14', '#ffa500'];
+        const enemyColor = '#ff0000';
+        const powerUpColor = '#00ffff';
+
+        // Initialize Targets
+        function initTargets(count) {
+            for (let i = 0; i < count; i++) {
+                targets.push({
+                    x: Math.random() * (canvas.width - 20),
+                    y: Math.random() * (canvas.height - 20),
+                    size: 20,
+                    color: targetColors[Math.floor(Math.random() * targetColors.length)],
+                    value: Math.floor(Math.random() * 20) + 10 // 10 to 30 points
+                });
+            }
+        }
+
+        // Initialize Enemies
+        function initEnemies(count) {
+            for (let i = 0; i < count; i++) {
+                enemies.push({
+                    x: Math.random() * (canvas.width - 25),
+                    y: Math.random() * (canvas.height - 25),
+                    size: 25,
+                    color: enemyColor,
+                    speed: Math.random() * 2 + 1 // 1 to 3 speed
+                });
+            }
+        }
+
+        // Initialize Power-Ups
+        function initPowerUps(count) {
+            for (let i = 0; i < count; i++) {
+                powerUps.push({
+                    x: Math.random() * (canvas.width - 20),
+                    y: Math.random() * (canvas.height - 20),
+                    size: 15,
+                    color: powerUpColor,
+                    type: Math.random() < 0.5 ? 'speed' : 'invincibility',
+                    duration: 5000 // 5 seconds
+                });
+            }
+        }
+
+        // Add Targets, Enemies, Power-Ups based on Level
+        function setupLevel() {
+            const targetCount = 5 + level * 2;
+            const enemyCount = 2 + level;
+            const powerUpCount = 1 + Math.floor(level / 2);
+
+            initTargets(targetCount);
+            initEnemies(enemyCount);
+            initPowerUps(powerUpCount);
+        }
+
+        // Draw Player
         function drawPlayer() {
             // Draw trail
             ctx.fillStyle = 'rgba(0, 255, 234, 0.2)';
@@ -411,6 +391,7 @@
             }
         }
 
+        // Draw Targets
         function drawTargets() {
             targets.forEach((target) => {
                 ctx.fillStyle = target.color;
@@ -420,13 +401,36 @@
             });
         }
 
+        // Draw Enemies
+        function drawEnemies() {
+            enemies.forEach((enemy) => {
+                ctx.fillStyle = enemy.color;
+                ctx.beginPath();
+                ctx.arc(enemy.x + enemy.size / 2, enemy.y + enemy.size / 2, enemy.size / 2, 0, Math.PI * 2);
+                ctx.fill();
+            });
+        }
+
+        // Draw Power-Ups
+        function drawPowerUps() {
+            powerUps.forEach((powerUp) => {
+                ctx.fillStyle = powerUp.color;
+                ctx.beginPath();
+                ctx.rect(powerUp.x, powerUp.y, powerUp.size, powerUp.size);
+                ctx.fill();
+            });
+        }
+
+        // Clear Canvas with Motion Blur Effect
         function clearCanvas() {
-            // Slightly opaque to create a motion-blur effect
             ctx.fillStyle = 'rgba(26, 26, 26, 0.3)';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
         }
 
+        // Update Game Objects
         function update() {
+            if (gameOver) return;
+
             player.x += player.dx;
             player.y += player.dy;
 
@@ -436,30 +440,148 @@
             if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
             if (player.y + player.height > canvas.height) player.y = canvas.height - player.height;
 
-            // Collision Detection for multiple targets
-            targets.forEach((target) => {
-                if (
-                    player.x < target.x + target.size &&
-                    player.x + player.width > target.x &&
-                    player.y < target.y + target.size &&
-                    player.y + player.height > target.y
-                ) {
-                    points += target.value;
-                    pointsDisplay.textContent = points;
-                    relocateTarget(target);
+            // Move Enemies
+            enemies.forEach((enemy) => {
+                // Simple AI: move towards player
+                if (player.x > enemy.x) enemy.x += enemy.speed;
+                else enemy.x -= enemy.speed;
+
+                if (player.y > enemy.y) enemy.y += enemy.speed;
+                else enemy.y -= enemy.speed;
+            });
+
+            // Collision Detection for Targets
+            targets.forEach((target, index) => {
+                if (isColliding(player, target)) {
+                    score += target.value;
+                    scoreDisplay.textContent = score;
+                    // Update High Score
+                    if (score > highScore) {
+                        highScore = score;
+                        highScoreDisplay.textContent = highScore;
+                    }
+                    targets.splice(index, 1);
+                    // Spawn a new target
+                    targets.push({
+                        x: Math.random() * (canvas.width - 20),
+                        y: Math.random() * (canvas.height - 20),
+                        size: 20,
+                        color: targetColors[Math.floor(Math.random() * targetColors.length)],
+                        value: Math.floor(Math.random() * 20) + 10
+                    });
                 }
             });
+
+            // Collision Detection for Enemies
+            enemies.forEach((enemy) => {
+                if (isColliding(player, enemy)) {
+                    lives--;
+                    livesDisplay.textContent = lives;
+                    if (lives <= 0) {
+                        endGame();
+                    } else {
+                        resetPlayer();
+                    }
+                }
+            });
+
+            // Collision Detection for Power-Ups
+            powerUps.forEach((powerUp, index) => {
+                if (isColliding(player, powerUp)) {
+                    activatePowerUp(powerUp.type);
+                    powerUps.splice(index, 1);
+                    // Spawn a new power-up
+                    powerUps.push({
+                        x: Math.random() * (canvas.width - 15),
+                        y: Math.random() * (canvas.height - 15),
+                        size: 15,
+                        color: powerUpColor,
+                        type: Math.random() < 0.5 ? 'speed' : 'invincibility',
+                        duration: 5000
+                    });
+                }
+            });
+
+            // Check Level Progression
+            if (score >= level * 100) {
+                level++;
+                levelDisplay.textContent = level;
+                // Increase difficulty
+                setupLevel();
+            }
         }
 
-        function relocateTarget(target) {
-            target.x = Math.random() * (canvas.width - target.size);
-            target.y = Math.random() * (canvas.height - target.size);
+        // Check Collision Between Two Objects
+        function isColliding(a, b) {
+            return (
+                a.x < b.x + b.size &&
+                a.x + a.width > b.x &&
+                a.y < b.y + b.size &&
+                a.y + a.height > b.y
+            );
         }
 
+        // Reset Player Position
+        function resetPlayer() {
+            player.x = canvas.width / 2 - 15;
+            player.y = canvas.height / 2 - 15;
+            player.trail = [];
+        }
+
+        // End Game
+        function endGame() {
+            gameOver = true;
+            alert(`Game Over! Your Score: ${score}`);
+            // Reset Game
+            resetGame();
+        }
+
+        // Reset Game
+        function resetGame() {
+            score = 0;
+            scoreDisplay.textContent = score;
+            lives = 3;
+            livesDisplay.textContent = lives;
+            level = 1;
+            levelDisplay.textContent = level;
+            gameOver = false;
+            // Clear arrays
+            targets.length = 0;
+            enemies.length = 0;
+            powerUps.length = 0;
+            // Setup initial level
+            setupLevel();
+            // Reset player
+            resetPlayer();
+        }
+
+        // Activate Power-Up
+        let speedBoost = false;
+        let invincibility = false;
+
+        function activatePowerUp(type) {
+            if (type === 'speed') {
+                player.speed *= 2;
+                speedBoost = true;
+                setTimeout(() => {
+                    player.speed /= 2;
+                    speedBoost = false;
+                }, 5000);
+            } else if (type === 'invincibility') {
+                invincibility = true;
+                setTimeout(() => {
+                    invincibility = false;
+                }, 5000);
+            }
+        }
+
+        // Draw Everything
         function draw() {
             clearCanvas();
             drawPlayer();
             drawTargets();
+            drawEnemies();
+            drawPowerUps();
             update();
             requestAnimationFrame(draw);
         }
@@ -494,7 +616,8 @@
             }
         }
 
-        // Start the game
+        // Initialize Game
+        setupLevel();
         draw();
 
         /**********************************************/
@@ -510,6 +633,29 @@
             };
             releaseDateElement.textContent = releaseDate.toLocaleDateString(undefined, options);
         }
+
+        /**********************************************/
+        /*         Modal Functionality (unchanged)    */
+        /**********************************************/
+        const modal = document.getElementById('bookmarkModal');
+
+        function openModal() {
+            modal.style.display = 'block';
+        }
+
+        function closeModal() {
+            modal.style.display = 'none';
+        }
+
+        // Close modal when clicking outside of the modal content
+        window.onclick = function(event) {
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        // Assuming notificationTimestamp is defined elsewhere or replace with actual timestamp
+        const notificationTimestamp = 1736607600 * 1000; // Example timestamp
 
         // Call the function to display the release date
         displayReleaseDate();
