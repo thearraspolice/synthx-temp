@@ -212,6 +212,13 @@
             font-size: 1rem;
             color: #ff4081;
         }
+
+        /* Responsive Design */
+        @media (max-width: 600px) {
+            .game-container {
+                width: 90%;
+            }
+        }
     </style>
 </head>
 <body>
@@ -226,7 +233,7 @@
         <!-- Info Section -->
         <div class="info-section">
             <h2>What is SYNTHX.CC?</h2>
-            <p>Synthx.cc is an <strong>arras.io</strong> remake with a lot of optimization and a different feel. SYNTHX.CC will contain many interesting gamemodes and updates. The discord server will be released soon. Please stay tuned! 🚀🔮</p>
+            <p>Synthx.cc is an <strong>arras.io</strong> remake with a lot of optimization and a different feel. SYNTHX.CC will contain many interesting gamemodes and updates. Join our Discord server <a href="https://discord.gg/ATTGqt72kz" target="_blank">here</a>. Please stay tuned!</p>
 
             <!-- Show the provided timestamp plus the message that will happen -->
             <p>
@@ -278,7 +285,7 @@
         /**********************************************/
         function askForNotifications() {
             if (!("Notification" in window)) {
-                alert("This browser does not support desktop notification. 😢");
+                alert("This browser does not support desktop notification.");
                 return;
             }
 
@@ -289,7 +296,7 @@
                 scheduleScheduledNotification();
             } else if (Notification.permission === "denied") {
                 // If permission is denied, inform the user
-                document.getElementById("notificationMsg").textContent = "Notifications denied. 🙃";
+                document.getElementById("notificationMsg").textContent = "Notifications denied.";
             } else {
                 // If permission is 'default', request permission
                 Notification.requestPermission().then((permission) => {
@@ -301,7 +308,7 @@
                         document.getElementById("notificationMsg").textContent = "Notifications enabled! You'll receive a notification at the game's release.";
                     } else {
                         // If permission is denied, inform the user
-                        document.getElementById("notificationMsg").textContent = "Notifications denied. 🙃";
+                        document.getElementById("notificationMsg").textContent = "Notifications denied.";
                     }
                 }).catch((error) => {
                     console.error("Notification permission request failed:", error);
