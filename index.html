@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>synthx.cc</title>
+    <title>SYNTHX.CC</title>
     <style>
         /* Reset CSS */
         * {
@@ -20,7 +20,6 @@
             flex-direction: column;
             align-items: center;
             min-height: 100vh;
-            /* Removed overflow: hidden to allow scrolling */
             overflow-y: auto;
         }
 
@@ -33,6 +32,12 @@
             position: fixed;
             top: 0;
             z-index: 1000;
+            animation: headerGlow 3s infinite alternate;
+        }
+
+        @keyframes headerGlow {
+            0% { box-shadow: 0 0 10px #00ffea; }
+            100% { box-shadow: 0 0 20px #ff4081; }
         }
 
         header h1 {
@@ -64,6 +69,55 @@
             25%, 75% { opacity: 0.5; }
         }
 
+        .info-section {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border: 2px solid #ff4081;
+            border-radius: 10px;
+            width: 100%;
+            max-width: 800px;
+            text-align: center;
+            position: relative;
+            animation: borderGlow 3s infinite;
+        }
+
+        @keyframes borderGlow {
+            0% {
+                box-shadow: 0 0 10px #ff4081, 0 0 20px #ff4081;
+            }
+            50% {
+                box-shadow: 0 0 20px #00ffea, 0 0 40px #00ffea;
+            }
+            100% {
+                box-shadow: 0 0 10px #ff4081, 0 0 20px #ff4081;
+            }
+        }
+
+        .info-section h2 {
+            margin-bottom: 15px;
+            color: #ff4081;
+            text-shadow: 0 0 10px #ff4081;
+        }
+
+        .bookmark-btn, .notification-btn {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #00ffea;
+            color: #0f0f0f;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            box-shadow: 0 0 10px #00ffea;
+            transition: background-color 0.3s, transform 0.3s;
+            margin-right: 10px;
+        }
+
+        .bookmark-btn:hover, .notification-btn:hover {
+            background-color: #00c7b7;
+            transform: scale(1.05);
+        }
+
         .game-container {
             background: rgba(255, 255, 255, 0.1);
             padding: 20px;
@@ -71,7 +125,27 @@
             border-radius: 10px;
             box-shadow: 0 0 20px #00ffea;
             position: relative;
-            width: 420px; /* Slightly larger than canvas for padding */
+            width: 460px; /* Slightly larger than canvas for extra padding */
+            animation: borderGlowAlt 3s infinite;
+        }
+
+        @keyframes borderGlowAlt {
+            0% {
+                box-shadow: 0 0 10px #00ffea, 0 0 20px #00ffea;
+            }
+            50% {
+                box-shadow: 0 0 20px #ff4081, 0 0 40px #ff4081;
+            }
+            100% {
+                box-shadow: 0 0 10px #00ffea, 0 0 20px #00ffea;
+            }
+        }
+
+        .game-container h2 {
+            color: #00ffea;
+            text-align: center;
+            margin-bottom: 10px;
+            text-shadow: 0 0 5px #00ffea;
         }
 
         .game-container canvas {
@@ -83,79 +157,11 @@
             height: auto;
         }
 
-        .info-section {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 20px;
-            border: 2px solid #ff4081;
-            border-radius: 10px;
-            width: 100%;
-            max-width: 800px;
-            box-shadow: 0 0 20px #ff4081;
-            text-align: center;
-        }
-
-        .info-section h2 {
-            margin-bottom: 15px;
-            color: #ff4081;
-            text-shadow: 0 0 10px #ff4081;
-        }
-
-        .bookmark-btn {
-            margin-top: 20px;
-            padding: 10px 20px;
-            background-color: #00ffea;
-            color: #0f0f0f;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 1rem;
-            box-shadow: 0 0 10px #00ffea;
-            transition: background-color 0.3s, transform 0.3s;
-        }
-
-        .bookmark-btn:hover {
-            background-color: #00c7b7;
-            transform: scale(1.05);
-        }
-
-        /* Futuristic UI Elements */
-        .neon-button {
-            position: relative;
-            padding: 12px 24px;
-            color: #fff;
-            background: transparent;
-            border: 2px solid #00ffea;
-            border-radius: 8px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            cursor: pointer;
-            transition: color 0.3s;
-        }
-
-        .neon-button::before,
-        .neon-button::after {
-            content: '';
+        .points-display {
             position: absolute;
-            top: -2px;
-            left: -2px;
-            width: calc(100% + 4px);
-            height: calc(100% + 4px);
-            background: linear-gradient(45deg, #00ffea, #ff4081, #00ffea);
-            z-index: -1;
-            filter: blur(8px);
-            opacity: 0;
-            transition: opacity 0.3s;
-            border-radius: 10px;
-        }
-
-        .neon-button::after {
-            filter: blur(4px);
-            opacity: 0.5;
-        }
-
-        .neon-button:hover::before,
-        .neon-button:hover::after {
-            opacity: 1;
+            top: 10px;
+            right: 10px;
+            color: #fff;
         }
 
         /* Modal Styles */
@@ -200,28 +206,49 @@
             background-color: #e53935;
             transform: scale(1.05);
         }
+
+        .notification-status {
+            margin-top: 10px;
+            font-size: 1rem;
+            color: #ff4081;
+        }
     </style>
 </head>
 <body>
     <header>
-        <h1>synthx.cc</h1>
+        <h1>SYNTHX.CC</h1>
     </header>
+
     <main>
-        <div class="status">synthx.cc is in development, please come back later.</div>
+        <!-- Updated status message -->
+        <div class="status">SYNTHX.CC open testing is coming soon!</div>
+
+        <!-- Info Section -->
         <div class="info-section">
-            <h2>What is synthx.cc?</h2>
-            <p>Synthx.cc is an <strong>arras.io</strong> remake with a lot of optimization and a different feel. Synthx will contain many interesting gamemodes and updates. The discord server will be released soon. Please stay tuned!</p>
+            <h2>What is SYNTHX.CC?</h2>
+            <p>Synthx.cc is an <strong>arras.io</strong> remake with a lot of optimization and a different feel. SYNTHX.CC will contain many interesting gamemodes and updates. The discord server will be released soon. Please stay tuned! 🚀🔮</p>
+
+            <!-- Show the provided timestamp plus the message that will happen -->
+            <p>
+                At <strong><t:1736607600:F></t></strong> we will announce: 
+                <em>"GAME WILL BE RELEASED WITHIN MOMENTS. KEEP RELOADING THE PAGE!"</em>
+            </p>
+
+            <!-- Buttons -->
             <button class="bookmark-btn" onclick="openModal()">Bookmark this Page</button>
+            <button class="notification-btn" onclick="askForNotifications()">Give me notification</button>
+
+            <div id="notificationMsg" class="notification-status"></div>
         </div>
+
+        <!-- Game Container -->
         <div class="game-container">
-            <h2 style="color: #00ffea; text-align: center; margin-bottom: 10px;">something while you wait...</h2>
+            <h2>Something fun while you wait...</h2>
             <canvas id="gameCanvas" width="400" height="300"></canvas>
-            <div style="position: absolute; top: 10px; right: 10px; color: #fff;">
+            <div class="points-display">
                 Points: <span id="points">0</span>
             </div>
         </div>
-
-        
     </main>
 
     <!-- Modal Structure -->
@@ -234,7 +261,85 @@
     </div>
 
     <script>
-        // Simple Arcade Game: Collect the Moving Dot with Trail Effect
+        /**********************************************/
+        /*         Global Config + Variables          */
+        /**********************************************/
+        // The real timestamp in ms
+        const notificationTimestamp = 1736607600 * 1000;
+
+        // Notification message for the official timestamp
+        const scheduledNotificationMessage = "OPEN TESTING HAPPENING NOW! STAY TUNED AT SYNTHX.CC! SITE UPDATING SOON!";
+
+        // If set to TRUE, we will trigger open test logic 10s after user clicks "Give me notification"
+        let testOpenTestingTime = false; // << default is false
+
+        /**********************************************/
+        /*         Notification Handling Logic        */
+        /**********************************************/
+        function askForNotifications() {
+            if (!("Notification" in window)) {
+                alert("This browser does not support desktop notification. 😢");
+                return;
+            }
+
+            Notification.requestPermission().then((permission) => {
+                if (permission === "granted") {
+                    // Send the test notification instead of displaying it on the page
+                    new Notification("Your notifications work. Nice :)");
+
+                    // If testOpenTestingTime is true, use the 10-second timer logic
+                    if (testOpenTestingTime) {
+                        // 10 seconds after user clicks the button, trigger the open test
+                        setTimeout(() => {
+                            // Show the scheduled notification
+                            new Notification(scheduledNotificationMessage);
+                            // Then redirect to open-test page
+                            window.location.href = "open-test.html";
+                        }, 10000);
+                    } else {
+                        // Otherwise, schedule the notification for the official timestamp
+                        const now = Date.now();
+                        if (now >= notificationTimestamp) {
+                            // Time has already passed => show notification right away
+                            new Notification(scheduledNotificationMessage);
+                        } else {
+                            // Otherwise schedule it for the future
+                            const timeUntilNotification = notificationTimestamp - now;
+                            setTimeout(() => {
+                                new Notification(scheduledNotificationMessage);
+                            }, timeUntilNotification);
+                        }
+                    }
+                } else {
+                    document.getElementById("notificationMsg").textContent = "Notifications denied. 🙃";
+                }
+            });
+        }
+
+
+        /**********************************************/
+        /*            Modal Functionality             */
+        /**********************************************/
+        const modal = document.getElementById('bookmarkModal');
+
+        function openModal() {
+            modal.style.display = 'block';
+        }
+
+        function closeModal() {
+            modal.style.display = 'none';
+        }
+
+        // Close modal when clicking outside of the modal content
+        window.onclick = function(event) {
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        /**********************************************/
+        /*            Enhanced Arcade Game            */
+        /**********************************************/
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         const pointsDisplay = document.getElementById('points');
@@ -248,19 +353,31 @@
             speed: 3,
             dx: 0,
             dy: 0,
-            trail: [] // Array to store previous positions
+            trail: []
         };
 
-        const target = {
-            x: Math.random() * (canvas.width - 20),
-            y: Math.random() * (canvas.height - 20),
-            size: 20
-        };
+        // Add multiple targets with varying points
+        const targets = [
+            {
+                x: Math.random() * (canvas.width - 20),
+                y: Math.random() * (canvas.height - 20),
+                size: 20,
+                color: '#ff4081',
+                value: 10
+            },
+            {
+                x: Math.random() * (canvas.width - 30),
+                y: Math.random() * (canvas.height - 30),
+                size: 30,
+                color: '#39ff14', // bright green
+                value: 20
+            }
+        ];
 
         function drawPlayer() {
             // Draw trail
-            ctx.fillStyle = 'rgba(0, 255, 234, 0.2)'; // Faded color for trail
-            player.trail.forEach((position, index) => {
+            ctx.fillStyle = 'rgba(0, 255, 234, 0.2)';
+            player.trail.forEach((position) => {
                 ctx.fillRect(position.x, position.y, player.width, player.height);
             });
 
@@ -270,20 +387,23 @@
 
             // Update trail
             player.trail.push({ x: player.x, y: player.y });
-            if (player.trail.length > 10) { // Limit trail length
+            if (player.trail.length > 10) {
                 player.trail.shift();
             }
         }
 
-        function drawTarget() {
-            ctx.fillStyle = '#ff4081';
-            ctx.beginPath();
-            ctx.arc(target.x + target.size / 2, target.y + target.size / 2, target.size / 2, 0, Math.PI * 2);
-            ctx.fill();
+        function drawTargets() {
+            targets.forEach((target) => {
+                ctx.fillStyle = target.color;
+                ctx.beginPath();
+                ctx.arc(target.x + target.size / 2, target.y + target.size / 2, target.size / 2, 0, Math.PI * 2);
+                ctx.fill();
+            });
         }
 
         function clearCanvas() {
-            ctx.fillStyle = 'rgba(26, 26, 26, 0.3)'; // Slightly opaque to create trail effect
+            // Slightly opaque to create a motion-blur effect
+            ctx.fillStyle = 'rgba(26, 26, 26, 0.3)';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
         }
 
@@ -297,18 +417,22 @@
             if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
             if (player.y + player.height > canvas.height) player.y = canvas.height - player.height;
 
-            // Collision Detection
-            if (player.x < target.x + target.size &&
-                player.x + player.width > target.x &&
-                player.y < target.y + target.size &&
-                player.y + player.height > target.y) {
-                points += 10;
-                pointsDisplay.textContent = points;
-                relocateTarget();
-            }
+            // Collision Detection for multiple targets
+            targets.forEach((target) => {
+                if (
+                    player.x < target.x + target.size &&
+                    player.x + player.width > target.x &&
+                    player.y < target.y + target.size &&
+                    player.y + player.height > target.y
+                ) {
+                    points += target.value;
+                    pointsDisplay.textContent = points;
+                    relocateTarget(target);
+                }
+            });
         }
 
-        function relocateTarget() {
+        function relocateTarget(target) {
             target.x = Math.random() * (canvas.width - target.size);
             target.y = Math.random() * (canvas.height - target.size);
         }
@@ -316,7 +440,7 @@
         function draw() {
             clearCanvas();
             drawPlayer();
-            drawTarget();
+            drawTargets();
             update();
             requestAnimationFrame(draw);
         }
@@ -353,30 +477,6 @@
 
         // Start the game
         draw();
-
-        // Modal Functionality
-        const modal = document.getElementById('bookmarkModal');
-
-        function openModal() {
-            modal.style.display = 'block';
-        }
-
-        function closeModal() {
-            modal.style.display = 'none';
-        }
-
-        // Close modal when clicking outside of the modal content
-        window.onclick = function(event) {
-            if (event.target == modal) {
-                modal.style.display = 'none';
-            }
-        }
-
-        // Bookmark Function (Revised)
-        function bookmarkPage() {
-            // This function is no longer used since we're using a modal
-            // Keeping it here for reference or future use
-        }
     </script>
 </body>
 </html>
